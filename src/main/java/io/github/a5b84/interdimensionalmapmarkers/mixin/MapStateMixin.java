@@ -56,8 +56,8 @@ public abstract class MapStateMixin {
         final int mapScale = 1 << scale;
         final float dimScale = (world != null ? getDimScale(world.getDimension().getType()) : 1);
         // Coordonnées en pixel avec (0, 0) au centre
-        final float mapX = (float) (x - xCenter) * dimScale / mapScale;
-        final float mapY = (float) (z - zCenter) * dimScale / mapScale;
+        final float mapX = (float) (x * dimScale - xCenter) / mapScale;
+        final float mapY = (float) (z * dimScale - zCenter) / mapScale;
         rotation += rotation < 0 ? -8 : 8; // Pour arrondir
         byte mapRot = (byte) (rotation * 16 / 360);
         type = adjustMarkerType(type, world);
