@@ -1,8 +1,10 @@
 {
     "required": true,
-    "package": "io.github.a5b84.__package__.mixin",
+    "package": "io.github.a5b84.interdimensionalmapmarkers.mixin",
     "compatibilityLevel": "JAVA_8",
-    "client": [],
+    "mixins": [
+        "MapStateMixin"
+    ],
     "injectors": {
         "defaultRequire": 1
     }

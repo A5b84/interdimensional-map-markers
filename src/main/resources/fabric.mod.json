@@ -1,29 +1,20 @@
 {
     "schemaVersion": 1,
 
-    "id": "__id__",
+    "id": "interdimensional-map-markers",
     "version": "${version}",
 
-    "name": ".__id__",
+    "name": "Interdimensional Map Markers",
     "description": "bla",
-    "icon": "assets/__id__/icon.png",
+    "icon": "assets/interdimensional-map-markers/icon.png",
     "authors": ["Neecko"],
     "contact": {
-        "homepage": "https://github.com/A5b84/__id__",
-        "issues": "https://github.com/A5b84/__id__/issues",
-        "sources": "https://github.com/A5b84/__id__"
+        "homepage": "https://github.com/A5b84/interdimensional-map-markers",
+        "issues": "https://github.com/A5b84/interdimensional-map-markers/issues",
+        "sources": "https://github.com/A5b84/interdimensional-map-markers"
     },
     "license": "CC-BY-NC-4.0",
 
-    "environment": "client",
-    "entrypoints": {
-        "client": ["io.github.a5b84.__package__.Mod"]
-    },
-    "mixins": ["__id__.mixins.json"],
-
-    "depends": {},
-
-    "custom": {
-        "modmenu:clientsideOnly": true
-    }
+    "environment": "*",
+    "mixins": ["interdimensional-map-markers.mixins.json"]
 }
