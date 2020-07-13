@@ -26,7 +26,7 @@ import net.minecraft.world.dimension.DimensionType;
 
 @Mixin(MapState.class)
 public abstract class MapStateMixin {
-    
+
     @Shadow public int xCenter;
     @Shadow public int zCenter;
     @Shadow public DimensionType dimension;
