@@ -13,7 +13,7 @@
         "issues": "https://github.com/A5b84/interdimensional-map-markers/issues",
         "sources": "https://github.com/A5b84/interdimensional-map-markers"
     },
-    "license": "CC-BY-NC-4.0",
+    "license": "LGPL-3.0-or-later",
 
     "environment": "*",
     "mixins": ["interdimensional-map-markers.mixins.json"]

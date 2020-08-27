@@ -24,6 +24,9 @@ dependencies {
 
     // API Fabric
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // JSR305
+    compileOnly "com.google.code.findbugs:jsr305:${project.jsr305_version}"
 }
 
 processResources {

@@ -1,10 +1,8 @@
 package io.github.a5b84.interdimensionalmapmarkers.mixin;
 
-import static net.minecraft.world.dimension.DimensionType.OVERWORLD;
-import static net.minecraft.world.dimension.DimensionType.THE_END;
-import static net.minecraft.world.dimension.DimensionType.THE_NETHER;
-
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,31 +13,38 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.map.MapIcon;
 import net.minecraft.item.map.MapIcon.Type;
 import net.minecraft.item.map.MapState;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 
 @Mixin(MapState.class)
 public abstract class MapStateMixin {
 
     @Shadow public int xCenter;
     @Shadow public int zCenter;
-    @Shadow public DimensionType dimension;
+    @Shadow public RegistryKey<World> dimension;
     @Shadow public boolean unlimitedTracking;
     @Shadow public byte scale;
     @Shadow public @Final Map<String, MapIcon> icons;
 
+    private @Nullable World mapWorld;
+
+
+
     /**
      * Permet de mettre à jour les icônes de joueurs dans les mauvaises
-     * dimensions.
-     * @see MapState#update */
-    @Redirect(method = "update", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/player/PlayerEntity;dimension:Lnet/minecraft/world/dimension/DimensionType;"))
-    private DimensionType playerDimensionProxy(PlayerEntity player) {
+     * dimensions
+     * @see MapState#update
+     */
+    @Redirect(method = "update",
+        at = @At(value = "INVOKE", target = "net/minecraft/world/World.getRegistryKey()Lnet/minecraft/util/registry/RegistryKey;"))
+    private RegistryKey<World> playerDimensionProxy(World world) {
         return dimension;
     }
 
@@ -47,26 +52,30 @@ public abstract class MapStateMixin {
     /** Déplace et recolore les icônes de joueurs
      * @see MapState#addIcon */
     @Inject(method = "addIcon", at = @At("HEAD"), cancellable = true)
-    private void onAddIcon(Type type, IWorld world, String key, double x, double z, double rotation, Text text, CallbackInfo ci) {
+    private void onAddIcon(Type type, @Nullable WorldAccess world, String key, double x, double z, double rotation, @Nullable Text text, CallbackInfo ci) {
         // On touche que les icônes de joueurs dans la mauvaise dimension
-        if (!isPlayerMarker(type)) return;
-        if (world == null || dimension == world.getDimension().getType()) return;
+        if (!isPlayerMarker(type)
+                || !(world instanceof World)
+                || dimension == ((World) world).getRegistryKey()) {
+            return;
+        }
 
         ci.cancel();
         final int mapScale = 1 << scale;
-        final float dimScale = (world != null ? getDimScale(world.getDimension().getType()) : 1);
+        final float dimScale = getDimensionScale((World) world);
         // Coordonnées en pixel avec (0, 0) au centre
         final float mapX = (float) (x * dimScale - xCenter) / mapScale;
         final float mapY = (float) (z * dimScale - zCenter) / mapScale;
         rotation += rotation < 0 ? -8 : 8; // Pour arrondir
         byte mapRot = (byte) (rotation * 16 / 360);
-        type = adjustMarkerType(type, world);
+        type = adjustMarkerType(type, (World) world);
 
         if (mapX >= -63 && mapY >= -63 && mapX <= 63 && mapY <= 63) {
             // Rotation random dans le Nether
-            if (dimension == DimensionType.THE_NETHER && world != null) {
+            // (volé à Mojang) TODO enlever
+            if (dimension == World.NETHER && world != null) {
                 final int t = (int) (world.getLevelProperties().getTimeOfDay() / 10);
-                mapRot = (byte) ((t * t * 34187121 + t * 121) >> 15 & 15);
+                mapRot = (byte) (t * (t * 34187121 + 121) >> 15 & 15);
             }
 
         } else if (type == Type.PLAYER) {
@@ -83,31 +92,39 @@ public abstract class MapStateMixin {
             }
         }
 
-        final byte iconX = clampToByte(mapX * 2 + .5);
-        final byte iconY = clampToByte(mapY * 2 + .5);
+        final byte iconX = clampToByte(mapX * 2 + .5f);
+        final byte iconY = clampToByte(mapY * 2 + .5f);
         icons.put(key, new MapIcon(type, iconX, iconY, mapRot, text));
+        // TODO injecter ailleurs pour enlever le code volé
     }
 
 
 
-    @Unique private Type adjustMarkerType(Type currType, IWorld world) {
-        if (world == null) return currType;
-        final DimensionType dim = world.getDimension().getType();
-        if (dim == dimension) return currType;
+    /** Renvoie le monde de la carte */
+    @Unique private @Nullable World getWorld(MinecraftServer server) {
+        if (mapWorld == null || mapWorld.getRegistryKey() != dimension) {
+            return mapWorld = server.getWorld(dimension);
+        }
+        return mapWorld;
+    }
 
-        if (dim == OVERWORLD) return Type.FRAME; // Marqueur vert
-        if (dim == THE_NETHER) return Type.RED_MARKER;
-        if (dim == THE_END) return Type.BLUE_MARKER;
+    @Unique private Type adjustMarkerType(Type currType, World markerWorld) {
+        final RegistryKey<World> markerKey = markerWorld.getRegistryKey();
+        if (markerKey == dimension) return currType;
+
+        if (markerKey == World.OVERWORLD) return Type.FRAME; // Marqueur vert
+        if (markerKey == World.NETHER) return Type.RED_MARKER;
+        if (markerKey == World.END) return Type.BLUE_MARKER;
 
         return currType;
     }
 
     /** Renvoie le ratio de distances entre la dimension en paramètre et celle
      * de la carte. */
-    @Unique private float getDimScale(DimensionType worldDim) {
-        if (dimension == OVERWORLD && worldDim == THE_NETHER) return 8;
-        if (dimension == THE_NETHER && worldDim == OVERWORLD) return 1 / 8;
-        return 1;
+    @Unique private float getDimensionScale(World world) {
+        final World mapWorld = getWorld(world.getServer());
+        if (mapWorld == null) return 1;
+        return (float) (world.getDimension().getCoordinateScale() / mapWorld.getDimension().getCoordinateScale());
     }
 
     /** Vérifie si une icône est celle du joueur */
@@ -120,7 +137,7 @@ public abstract class MapStateMixin {
             || type == Type.BLUE_MARKER;
     }
 
-    @Unique private static byte clampToByte(double x) {
+    @Unique private static byte clampToByte(float x) {
         return (byte) MathHelper.clamp(x, Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
 
