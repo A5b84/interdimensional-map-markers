@@ -1,19 +1,19 @@
 {
     "schemaVersion": 1,
-
     "id": "interdimensional-map-markers",
     "version": "${version}",
 
     "name": "Interdimensional Map Markers",
-    "description": "bla",
-    "icon": "assets/interdimensional-map-markers/icon.png",
-    "authors": ["Neecko"],
+    "description": "Makes maps display markers for players in other dimensions too",
+    "authors": ["Neecko5b84"],
     "contact": {
         "homepage": "https://github.com/A5b84/interdimensional-map-markers",
         "issues": "https://github.com/A5b84/interdimensional-map-markers/issues",
         "sources": "https://github.com/A5b84/interdimensional-map-markers"
     },
+
     "license": "LGPL-3.0-or-later",
+    "icon": "assets/interdimensional-map-markers/icon.png",
 
     "environment": "*",
     "mixins": ["interdimensional-map-markers.mixins.json"]
