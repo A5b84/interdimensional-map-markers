@@ -6,6 +6,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -19,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(MapState.class)
 public abstract class MapStateMixin {
 
-    @Shadow public RegistryKey<World> dimension;
+    @Shadow public @Final RegistryKey<World> dimension;
 
     @Unique private World mapWorld;
     @Unique private World markerWorld;
