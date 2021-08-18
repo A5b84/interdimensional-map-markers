@@ -16,5 +16,12 @@
   "icon": "assets/interdimensional-map-markers/icon.png",
 
   "environment": "*",
-  "mixins": ["interdimensional-map-markers.mixins.json"]
+  "entrypoints": {
+    "main": ["io.github.a5b84.interdimensionalmapmarkers.InterdimensionalMapMarkers"]
+  },
+  "mixins": ["interdimensional-map-markers.mixins.json"],
+
+  "depends": {
+    "fabric-game-rule-api-v1": "*"
+  }
 }

@@ -1,11 +1,13 @@
 package io.github.a5b84.interdimensionalmapmarkers.mixin;
 
+import io.github.a5b84.interdimensionalmapmarkers.MapStateAccess;
 import net.minecraft.item.map.MapIcon.Type;
 import net.minecraft.item.map.MapState;
 import net.minecraft.text.Text;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,15 +20,14 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(MapState.class)
-public abstract class MapStateMixin {
+public abstract class MapStateMixin implements MapStateAccess {
 
     @Shadow public @Final RegistryKey<World> dimension;
 
-    @Unique private World mapWorld;
-    @Unique private World markerWorld;
+    @Unique @Nullable private World mapWorld;
+    @Unique @Nullable private World markerWorld;
     @Unique private double coordinateScale;
     @Unique private double markerRotation;
-
 
 
     /** Allows updating icons of players in other dimensions */
@@ -96,18 +97,29 @@ public abstract class MapStateMixin {
     }
 
 
-
-    @Unique private double getCoordinateScale() {
+    @Unique
+    private double getCoordinateScale() {
         if (markerWorld == null) return 1;
-
-        if (mapWorld == null || mapWorld.getRegistryKey() != dimension) {
-            //noinspection ConstantConditions
-            mapWorld = markerWorld.getServer().getWorld(dimension);
-            if (mapWorld == null) return 1;
-        }
+        updateWorld();
+        if (mapWorld == null) return 1;
 
         return markerWorld.getDimension().getCoordinateScale()
             / mapWorld.getDimension().getCoordinateScale();
+    }
+
+    /** Updates the {@link #mapWorld} field */
+    @Unique
+    private void updateWorld() {
+        if ((mapWorld == null || mapWorld.getRegistryKey() != dimension) && markerWorld != null) {
+            //noinspection ConstantConditions
+            mapWorld = markerWorld.getServer().getWorld(dimension);
+        }
+    }
+
+    @Override
+    public World getWorld() {
+        updateWorld();
+        return mapWorld;
     }
 
 }

@@ -4,7 +4,8 @@
   "package": "io.github.a5b84.interdimensionalmapmarkers.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MapStateMixin"
+    "MapStateMixin",
+    "PlayerUpdateTrackerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

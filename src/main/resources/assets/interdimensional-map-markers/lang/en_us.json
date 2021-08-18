@@ -1,0 +1,4 @@
+{
+    "gamerule.mapUpdateInterval": "Map update interval",
+    "gamerule.mapUpdateInterval.description": "Controls the number of ticks between map marker updates which affects how smooth their animation is."
+}
