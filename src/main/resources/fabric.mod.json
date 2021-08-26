@@ -16,5 +16,9 @@
   "icon": "assets/interdimensional-map-markers/icon.png",
 
   "environment": "*",
-  "mixins": ["interdimensional-map-markers.mixins.json"]
+  "mixins": ["interdimensional-map-markers.mixins.json"],
+
+  "depends": {
+    "minecraft": "<1.17-"
+  }
 }
