@@ -28,7 +28,6 @@ public abstract class MapStateMixin {
     @Unique private double markerRotation;
 
 
-
     /** Allows updating icons of players in other dimensions */
     @Redirect(method = "update",
         at = @At(value = "INVOKE", target = "net/minecraft/world/World.getRegistryKey()Lnet/minecraft/util/registry/RegistryKey;"))
@@ -37,16 +36,16 @@ public abstract class MapStateMixin {
     }
 
     /** Stores the method parameters and adjusts the X coordinate */
-    @ModifyVariable(method = "addIcon", at = @At("HEAD"), ordinal = 0)
-    private double adjustX(double x, Type type, WorldAccess world, String key, double _x, double z, double rotation) {
-        markerWorld = world instanceof World ? (World) world : null;
+    @ModifyVariable(method = "addIcon", at = @At("HEAD"), ordinal = 0, argsOnly = true)
+    private double adjustX(double x, Type type, WorldAccess worldAccess, String key, double _x, double z, double rotation) {
+        markerWorld = worldAccess instanceof World world ? world : null;
         markerRotation = rotation;
         coordinateScale = getCoordinateScale();
         return x * coordinateScale;
     }
 
     /** Adjusts the Z coordinate */
-    @ModifyVariable(method = "addIcon", at = @At("HEAD"), ordinal = 1)
+    @ModifyVariable(method = "addIcon", at = @At("HEAD"), ordinal = 2, argsOnly = true)
     private double adjustZ(double z) {
         return z * coordinateScale;
     }
@@ -79,7 +78,7 @@ public abstract class MapStateMixin {
         return type;
     }
 
-    /** Recolors player markers from other dimensions */
+    /** Recalculates the rotation if the marker was off-map */
     @ModifyArg(method = "addIcon",
         at = @At(value = "INVOKE", target = "net/minecraft/item/map/MapIcon.<init>(Lnet/minecraft/item/map/MapIcon$Type;BBBLnet/minecraft/text/Text;)V"), index = 3)
     private byte adjustMarkerRotation(Type type, byte x, byte z, byte rotation, Text text) {
@@ -87,14 +86,12 @@ public abstract class MapStateMixin {
                 && type != Type.PLAYER_OFF_MAP
                 && type != Type.PLAYER_OFF_LIMITS
                 && (x == -128 || x == 127 || z == -128 || z == 127)) {
-            // Recalculate the rotation if the marker was off-map
             markerRotation += markerRotation < 0 ? -8 : 8;
             return (byte) (markerRotation * 16 / 360);
         }
 
         return rotation;
     }
-
 
 
     @Unique private double getCoordinateScale() {
@@ -107,7 +104,7 @@ public abstract class MapStateMixin {
         }
 
         return markerWorld.getDimension().getCoordinateScale()
-            / mapWorld.getDimension().getCoordinateScale();
+                / mapWorld.getDimension().getCoordinateScale();
     }
 
 }
