@@ -45,7 +45,7 @@ public abstract class MapStateMixin {
     }
 
     /** Adjusts the Z coordinate */
-    @ModifyVariable(method = "addIcon", at = @At("HEAD"), ordinal = 2, argsOnly = true)
+    @ModifyVariable(method = "addIcon", at = @At("HEAD"), ordinal = 1, argsOnly = true)
     private double adjustZ(double z) {
         return z * coordinateScale;
     }
