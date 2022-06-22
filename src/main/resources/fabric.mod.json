@@ -19,7 +19,7 @@
   "mixins": ["interdimensional-map-markers.mixins.json"],
 
   "depends": {
-    "fabricloader": ">=0.12.0",
-    "minecraft": ">=1.17-"
+    "minecraft": ">=1.19-",
+    "fabricloader": ">=0.12.0"
   }
 }

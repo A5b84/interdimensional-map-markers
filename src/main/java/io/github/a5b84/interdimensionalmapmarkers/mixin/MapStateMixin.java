@@ -103,8 +103,8 @@ public abstract class MapStateMixin {
             if (mapWorld == null) return 1;
         }
 
-        return markerWorld.getDimension().getCoordinateScale()
-                / mapWorld.getDimension().getCoordinateScale();
+        return markerWorld.getDimension().coordinateScale()
+                / mapWorld.getDimension().coordinateScale();
     }
 
 }
