@@ -1,9 +1,11 @@
 package io.github.a5b84.interdimensionalmapmarkers.mixin;
 
-import net.minecraft.item.map.MapIcon.Type;
+import net.minecraft.item.map.MapDecorationType;
+import net.minecraft.item.map.MapDecorationTypes;
 import net.minecraft.item.map.MapState;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import org.spongepowered.asm.mixin.Final;
@@ -16,6 +18,8 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
+
+import java.util.Optional;
 
 @Mixin(MapState.class)
 public abstract class MapStateMixin {
@@ -30,14 +34,14 @@ public abstract class MapStateMixin {
 
     /** Allows updating icons of players in other dimensions */
     @Redirect(method = "update",
-        at = @At(value = "INVOKE", target = "net/minecraft/world/World.getRegistryKey()Lnet/minecraft/util/registry/RegistryKey;"))
+        at = @At(value = "INVOKE", target = "net/minecraft/world/World.getRegistryKey()Lnet/minecraft/registry/RegistryKey;"))
     private RegistryKey<World> playerDimensionProxy(World world) {
         return dimension;
     }
 
     /** Stores the method parameters and adjusts the X coordinate */
-    @ModifyVariable(method = "addIcon", at = @At("HEAD"), ordinal = 0, argsOnly = true)
-    private double adjustX(double x, Type type, WorldAccess worldAccess, String key, double _x, double z, double rotation) {
+    @ModifyVariable(method = "addDecoration", at = @At("HEAD"), ordinal = 0, argsOnly = true)
+    private double adjustX(double x, RegistryEntry<MapDecorationType> type, WorldAccess worldAccess, String key, double _x, double z, double rotation) {
         markerWorld = worldAccess instanceof World world ? world : null;
         markerRotation = rotation;
         coordinateScale = getCoordinateScale();
@@ -45,46 +49,50 @@ public abstract class MapStateMixin {
     }
 
     /** Adjusts the Z coordinate */
-    @ModifyVariable(method = "addIcon", at = @At("HEAD"), ordinal = 1, argsOnly = true)
+    @ModifyVariable(method = "addDecoration", at = @At("HEAD"), ordinal = 1, argsOnly = true)
     private double adjustZ(double z) {
         return z * coordinateScale;
     }
 
     /** Increases the off map distance */
-    @ModifyConstant(method = "addIcon", constant = @Constant(floatValue = 320))
+    @ModifyConstant(method = "addDecoration", constant = @Constant(floatValue = 320))
     private float adjustOffMapDistance(float offMapDistance) {
         return offMapDistance * Math.max((float) coordinateScale, 1);
     }
 
     /** Recolors the icons of player in other dimensions */
-    @ModifyArg(method = "addIcon",
-        at = @At(value = "INVOKE", target = "net/minecraft/item/map/MapIcon.<init>(Lnet/minecraft/item/map/MapIcon$Type;BBBLnet/minecraft/text/Text;)V"), index = 0)
-    private Type adjustMarkerType(Type type, byte x, byte z, byte rotation, Text text) {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    @ModifyArg(method = "addDecoration",
+        at = @At(value = "INVOKE", target = "net/minecraft/item/map/MapDecoration.<init>(Lnet/minecraft/registry/entry/RegistryEntry;BBBLjava/util/Optional;)V"), index = 0)
+    private RegistryEntry<MapDecorationType> adjustMarkerMapDecorationType(RegistryEntry<MapDecorationType> type, byte x, byte z, byte rotation, Optional<Text> name) {
         // Check for player icons
-        if (type != Type.PLAYER
-                && type != Type.PLAYER_OFF_MAP
-                && type != Type.PLAYER_OFF_LIMITS
-                || markerWorld == null) {
+        //noinspection deprecation (type.matches)
+        if (markerWorld == null
+                || !type.matches(MapDecorationTypes.PLAYER)
+                && !type.matches(MapDecorationTypes.PLAYER_OFF_MAP)
+                && !type.matches(MapDecorationTypes.PLAYER_OFF_LIMITS)) {
             return type;
         }
 
         final RegistryKey<World> markerDimension = markerWorld.getRegistryKey();
         if (markerDimension == dimension) return type;
 
-        if (markerDimension == World.OVERWORLD) return Type.FRAME; // Green marker
-        if (markerDimension == World.NETHER) return Type.RED_MARKER;
-        if (markerDimension == World.END) return Type.BLUE_MARKER;
+        if (markerDimension == World.OVERWORLD) return MapDecorationTypes.FRAME; // Green marker
+        if (markerDimension == World.NETHER) return MapDecorationTypes.RED_MARKER;
+        if (markerDimension == World.END) return MapDecorationTypes.BLUE_MARKER;
 
         return type;
     }
 
     /** Recalculates the rotation if the marker was off-map */
-    @ModifyArg(method = "addIcon",
-        at = @At(value = "INVOKE", target = "net/minecraft/item/map/MapIcon.<init>(Lnet/minecraft/item/map/MapIcon$Type;BBBLnet/minecraft/text/Text;)V"), index = 3)
-    private byte adjustMarkerRotation(Type type, byte x, byte z, byte rotation, Text text) {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    @ModifyArg(method = "addDecoration",
+        at = @At(value = "INVOKE", target = "net/minecraft/item/map/MapDecoration.<init>(Lnet/minecraft/registry/entry/RegistryEntry;BBBLjava/util/Optional;)V"), index = 3)
+    private byte adjustMarkerRotation(RegistryEntry<MapDecorationType> type, byte x, byte z, byte rotation, Optional<Text> name) {
+        //noinspection deprecation (type.matches)
         if (rotation == 0
-                && type != Type.PLAYER_OFF_MAP
-                && type != Type.PLAYER_OFF_LIMITS
+                && !type.matches(MapDecorationTypes.PLAYER_OFF_MAP)
+                && !type.matches(MapDecorationTypes.PLAYER_OFF_LIMITS)
                 && (x == -128 || x == 127 || z == -128 || z == 127)) {
             markerRotation += markerRotation < 0 ? -8 : 8;
             return (byte) (markerRotation * 16 / 360);

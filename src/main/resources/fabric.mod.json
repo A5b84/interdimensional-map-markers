@@ -1,25 +1,25 @@
 {
-  "schemaVersion": 1,
-  "id": "interdimensional-map-markers",
-  "version": "${version}",
-
-  "name": "Interdimensional Map Markers",
-  "description": "Makes maps show your location even when in other dimensions",
-  "authors": ["Neecko5b84"],
-  "contact": {
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/interdimensional-map-markers",
-    "issues": "https://github.com/A5b84/interdimensional-map-markers/issues",
-    "sources": "https://github.com/A5b84/interdimensional-map-markers"
-  },
-
-  "license": "LGPL-3.0-or-later",
-  "icon": "assets/interdimensional-map-markers/icon.png",
-
-  "environment": "*",
-  "mixins": ["interdimensional-map-markers.mixins.json"],
-
-  "depends": {
-    "minecraft": ">=1.19-",
-    "fabricloader": ">=0.12.0"
-  }
+	"schemaVersion": 1,
+	"id": "interdimensional-map-markers",
+	"version": "${version}",
+	"name": "Interdimensional Map Markers",
+	"description": "Makes maps show your location even when in other dimensions",
+	"authors": [
+		"Neecko5b84"
+	],
+	"contact": {
+		"homepage": "https://www.curseforge.com/minecraft/mc-mods/interdimensional-map-markers",
+		"issues": "https://github.com/A5b84/interdimensional-map-markers/issues",
+		"sources": "https://github.com/A5b84/interdimensional-map-markers"
+	},
+	"license": "LGPL-3.0-or-later",
+	"icon": "assets/interdimensional-map-markers/icon.png",
+	"environment": "*",
+	"mixins": [
+		"interdimensional-map-markers.mixins.json"
+	],
+	"depends": {
+		"minecraft": ">=1.20.5",
+		"fabricloader": ">=0.15.10"
+	}
 }
