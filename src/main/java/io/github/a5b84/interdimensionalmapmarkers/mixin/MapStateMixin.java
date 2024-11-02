@@ -55,7 +55,7 @@ public abstract class MapStateMixin {
     }
 
     /** Increases the off map distance */
-    @ModifyConstant(method = "addDecoration", constant = @Constant(floatValue = 320))
+    @ModifyConstant(method = "getPlayerMarker", constant = @Constant(floatValue = 320))
     private float adjustOffMapDistance(float offMapDistance) {
         return offMapDistance * Math.max((float) coordinateScale, 1);
     }
@@ -74,7 +74,7 @@ public abstract class MapStateMixin {
             return type;
         }
 
-        final RegistryKey<World> markerDimension = markerWorld.getRegistryKey();
+        RegistryKey<World> markerDimension = markerWorld.getRegistryKey();
         if (markerDimension == dimension) return type;
 
         if (markerDimension == World.OVERWORLD) return MapDecorationTypes.FRAME; // Green marker
