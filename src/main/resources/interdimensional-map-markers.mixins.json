@@ -3,7 +3,7 @@
 	"package": "io.github.a5b84.interdimensionalmapmarkers.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"MapStateMixin"
+		"MapItemSavedDataMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
